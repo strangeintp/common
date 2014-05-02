@@ -1,6 +1,30 @@
 import datetime as DT
 import random
+from random import random
 import math
+
+def pdf(values):
+    sum_values = sum(values)
+    return [v/sum_values for v in values]
+
+def cdf(values):
+    distribution = []
+    sum_values = sum(values)
+    sum_cdf = 0
+    for value in values:
+        sum_cdf += value/sum_values
+        distribution.append(sum_cdf)
+    return distribution
+
+def randomFromCDF(distribution):
+    # choose an index from distribution given the CDF in distribution
+    # note that values in distribution must be monotonically increasing,
+    # and distributed in the range (0+,1]!
+    r = random()
+    index = 0
+    while(r > distribution[index]):
+        index += 1
+    return index
 
 #a utility function that can generate a random number using a normal distribution with lower and upper bounds
 def randomBoundedNormal(meanVal,stdDev,lowerBound,upperBound):
@@ -67,6 +91,15 @@ def getTimeStampString():
     timestamp_str += str("%02d"%dt.day) + " " + str("%02d"%dt.hour)
     timestamp_str += str("%02d"%dt.minute) + str("%02d"%dt.second)
     return timestamp_str
+
+def bitwiseJaccardIndex(a, b, bits):
+    c = a^b
+    count = 0
+    for i in range(bits):
+        count += (c%2)
+        c = c>>1
+    return 1 - count/bits
+
 
 """
 MAIN
