@@ -5,7 +5,7 @@ import math
 
 def pdf(values):
     sum_values = sum(values)
-    return [v/sum_values for v in values]
+    return [v/sum_values for v in values] if sum_values>0 else [0 for v in values]
 
 def cdf(values):
     distribution = []
@@ -24,6 +24,9 @@ def randomFromCDF(distribution):
     index = 0
     while(r > distribution[index]):
         index += 1
+        if index==len(distribution):
+            index = len(distribution)-1
+            break
     return index
 
 #a utility function that can generate a random number using a normal distribution with lower and upper bounds

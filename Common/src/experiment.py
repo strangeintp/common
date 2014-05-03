@@ -2,6 +2,7 @@ import utility as U
 import datetime as DT
 import collections
 import sys
+import traceback
 
 
 """
@@ -95,6 +96,7 @@ Modify the run() method if you need other metrics output for each job.
 class Experiment(object):
 
     def __init__(self):
+        self.datetime = U.getTimeStampString()
         self.paramSetters = collections.OrderedDict()
         self.defaults = collections.OrderedDict()
         """ A dictionary of getter methods, accessed by a name for the variable """
@@ -102,6 +104,7 @@ class Experiment(object):
         """ A dictionary of string formats that tells the fileWriteOutput method how to format the output values"""
         self.output_formats = collections.OrderedDict()
         self.fileName = ""
+        self.directory = "../output/"
 
     """
     Override this method in subclasses, with the sections completed.
@@ -173,11 +176,10 @@ class Experiment(object):
         self.output_formats[output_name] = "," + output_format
 
     def setupFile(self):
-        dt = U.getTimeStampString()
-        self.fileName = "../output/" + self.Name + " " + dt + ".csv"
+        self.fileName = self.directory + self.Name + " " + self.datetime + ".csv"
         message = "Experiment " + self.Name
         message += "\n" + self.comments
-        message += ".\nExperiment started %s\n"%dt
+        message += ".\nExperiment started %s\n"%self.datetime
         self.output(message)
 
     def checkParameters(self):
@@ -199,6 +201,7 @@ class Experiment(object):
         try:
             self.simulate()
         except:
+            traceback.print_exc()
             error = sys.exc_info()[0]
             self.output("Experiment halted on error: %s" % error)
         finally:
@@ -242,13 +245,14 @@ class Experiment(object):
             for output in self.output_getters:
                 job_outputs[output] = []
             for i in range(self.job_repetitions):
+                self.datetime = U.getTimeStampString()
                 self.initiateSim()
                 while not self.stopSim():
                     self.stepSim()
                 outputs = self.getOutputs()
                 for output in outputs:
                     job_outputs[output].append(outputs[output])
-                self.outputFile.write("\n %d"%job["job_id"])
+                self.outputFile.write("\n %s, %d"%(self.datetime, job["job_id"]))
                 self.fileWriteJobParameters(job)
                 self.fileWriteOutputs(outputs)
 
@@ -317,7 +321,7 @@ class Experiment(object):
     def setJobParameters(self, job):
         self.output("\n")
         self.output("*********************Job Settings*********************")
-        job_output_header = "\n job ID"
+        job_output_header = "\n timestamp, job ID"
         for setter in self.paramSetters:
             v = setter(job[setter])
             self.output("\n%40s"%setter.__name__ + " :\t,%s"%str(v))
